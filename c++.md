@@ -12,11 +12,11 @@ c++11中提供了分布类，用于更好生成各种分布。
 ```
 
 #include<iostream>
+#include <vector>
 #include <stdlib.h>
 #include <ctime>
 #include <list>
 #include <map>
-#include <vector>
 #include <string>
 #include <bitset>
 #include <stack>
