@@ -23,7 +23,7 @@ using namespace std;
 #include "assert.h"
 #include <deque>
 #include<queue>
- #include <climits>
+#include <climits>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -41,42 +41,36 @@ class DataQueue
 private:
 	queue<int> q;
 	const int MAXQUEUESIZE;
-	condition_variable condEmpty;		//条件变量--队列空
-	mutex mEmpty;							//互斥锁--队列空
-
-	condition_variable condFull;			//条件变量--队列满
-	mutex mFull;									//互斥锁--队列满
-	//condition_variable condEmpty;
-
+	condition_variable condNotEmpty;		//条件变量--队列非空
+	mutex m;												//互斥锁--互斥队列访问
+	condition_variable condNotFull;			//条件变量--队列不满
 public:
 	DataQueue() :MAXQUEUESIZE(2) {}
 	void push(int i)
 	{
 		//生产者：等待信号--队列未满 , 然后插入数据后发信号通知 队列非空. 
-		unique_lock<mutex> lFull(mFull);
-		bool ready = q.size() < MAXQUEUESIZE;
-		condFull.wait(lFull, [ready]() {return ready;});
-		unique_lock<mutex> lEmpty(mEmpty);
+		unique_lock<mutex> lock(m);
+		while (q.size() >= MAXQUEUESIZE)
+		{
+			condNotFull.wait(lock);
+		}
 		q.push(i);
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_GREEN);
-		cout << "生产者" << this_thread::get_id() << "生产数据:" << i ;
-		cout << ",剩余数据" << q.size() << endl;
-
-		condEmpty.notify_one();
+		cout << "生产者" << this_thread::get_id() << "生产数据:" << i << ",剩余数据" << q.size() << endl;
+		condNotEmpty.notify_all();
 	}
 	void pop()
 	{
 		//消费者：等待信号--队列非空 , 然后插入数据后发信号通知 队列非满. 
-		unique_lock<mutex> lEmpty(mEmpty);
-		bool ready = !q.empty();
-		condEmpty.wait(lEmpty, [ready]() {return ready;});
-		unique_lock<mutex> lFull(mFull);
+		unique_lock<mutex> lock(m);
+		while (q.empty())
+		{
+			condNotEmpty.wait(lock);
+		}
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), FOREGROUND_RED);
-		cout << "消费者" << this_thread::get_id() << "消费数据:" << q.front();
+		cout << "消费者" << this_thread::get_id() << "消费数据:" << q.front() << ",剩余数据" << q.size() - 1 << endl;
 		q.pop();
-		cout << ",剩余数据" << q.size() << endl;
-		
-		condFull.notify_all();
+		condNotFull.notify_all();
 	}
 };
 
@@ -87,7 +81,7 @@ void produce()
 	while (1)
 	{
 		myDataQueue.push(++produceCount);
-		this_thread::sleep_for(chrono::seconds(3));
+		this_thread::sleep_for(chrono::microseconds(200));
 	}
 }
 void consume()
@@ -95,23 +89,38 @@ void consume()
 	while (1)
 	{
 		myDataQueue.pop();
-		//this_thread::sleep_for(chrono::microseconds(200));
+		this_thread::sleep_for(chrono::microseconds(200));
 	}
 }
+#define THREAD_NUM 3
 int main()
 {
-	thread tCosumer[1];
-	thread tProducer[1];
+	vector<thread> vecConsumer;
+	vector<thread> vecProducer;
+	int threadNumConsumer;
+	int threadNumProducer;
+	cout << "输入消费者线程数量：";
+	cin >> threadNumConsumer;
+	cout << "输入生产者线程数量：";
+	cin >> threadNumProducer;
 
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < threadNumConsumer; ++i)
 	{
-		tProducer[i] = thread(produce);
-		tCosumer[i] = thread(consume);		//移动语义 
+		vecConsumer.emplace_back(thread(consume));
 	}
-	for (int i = 0; i < 1; ++i)
+	for (int i = 0; i < threadNumProducer; ++i)
 	{
-		tProducer[i].join();
-		tCosumer[i].join();
+		vecProducer.emplace_back(thread(produce));
+	}
+
+	//等待
+	for (int i = 0; i < threadNumConsumer; ++i)
+	{
+		vecConsumer[i].join();
+	}
+	for (int i = 0; i < threadNumProducer; ++i)
+	{
+		vecProducer[i].join();
 	}
 
 	return 0;
