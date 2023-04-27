@@ -1,10 +1,6 @@
 #include<iostream>
-//
-using namespace std;
 #include <stdlib.h>
 #include <ctime>
-////#include <windows.h>
-////#include <winsock.h>
 #include <list>
 #include <map>
 #include <vector>
@@ -29,10 +25,13 @@ using namespace std;
 #include <unordered_set>
 //#include "def.h"
 #include <functional>
-#include "Solution.h"
+//#include "Solution.h"
 #include <condition_variable>
 #include <thread>
+#ifdef _WIN32
 #include "windows.h"
+#endif // _WIN32
+
 #include <atomic>
 using namespace std;
 
@@ -51,17 +50,26 @@ private:
 		}
 	};
 	atomic<node *> m_head;		//头节点
-	atomic<int> m_count;		//节点数量
 
 public:
 	void casPut(T val)
 	{
 		node * pNewNode = new node(val);
 		pNewNode->next = m_head.load();
+		//m_head = pNewNode;
 		while (!m_head.compare_exchange_weak(pNewNode->next, pNewNode));
-		++m_count;
 	}
-	size_t size()const { return m_count; }
+	size_t size()const
+	{
+		node * pHead = m_head.load();
+		int count = 0;
+		while (pHead)
+		{
+			++count;
+			pHead = pHead->next;
+		}
+		return count;
+	}
 };
 
 LockFreeList<int> lfDdata;
