@@ -33,7 +33,7 @@
     limit(m,n) 从第m行开始，筛选出n行 ，也支持 limit M offset N
     小提示点
 * sql语句不区分大小写，常常表名、字段小写，关键字大写， 空格会被忽略.
-* 123
+* sql查询
 #### order by
 排序，支持多列排序，默认升序，需要降序输入desc
 
@@ -79,6 +79,8 @@ inner join:
 * 外键（foreign key）: 外键为某个表中的一列，它包含另一个表的主键值，定义了两个表之间的关系。
 * 内连接  inner join
         select * from s1 inner join s2 where s1.id == s2.id
+这里有张图很详细解释了各种连接
+![](https://cdn.jsdelivr.net/gh/SylarHub/imageHost@master/img202306181856994.png)
 
 ####     全文索引
 Match 和 Against
