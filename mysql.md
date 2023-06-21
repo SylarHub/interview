@@ -127,3 +127,20 @@ rollback (回退)
 commit (提交)
 savepoint (保留点)： 回退时可以回退到保留点，savepoint a;  rollback to a
 在表中数据 之前或之后，调用该触发器。
+
+## 3.索引
+精彩文摘：[三友的java日记-索引的知识点](https://mp.weixin.qq.com/s/yibYJ9CQwiiVygu6vCZTFQ)
+### 3.1 目的
+通过索引的建立可以加快查询的速度
+
+### 3.2索引建立
+索引建立有几种方式，在建表时创建，alter表格,create index.
+参考[索引建立](https://blog.csdn.net/weixin_46972127/article/details/127081023)
+
+### 3.3 查看索引
+sql语句前加上explain，可以模拟优化器如何对sql进行操作，返回使用了何种索引等. 详细可参考[explain用法](https://mp.weixin.qq.com/s/PrXZrZkOZDqp1BZCHviTsg).
+重点关注type列，使用是哪种索引: system > const > eq_ref > ref > ref_or_null > index_merge > unique_subquery > index_subquery > range > index > ALL
+
+### 3.4 结构
+索引中用的最多的数据结构就是b+树，innodb。
+一般来说，mysql数据库的B+树一般三层就可以放下几千万条数据（）
