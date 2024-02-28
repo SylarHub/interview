@@ -502,7 +502,7 @@ std::move 将一个左值转换为一个右值
 String(String&& s): _str(s._str)
 { s._str = nullptr; }
 ```
-
+[移动语义](https://theonegis.github.io/cxx/C-%E7%A7%BB%E5%8A%A8%E8%AF%AD%E4%B9%89%E5%8F%8A%E6%8B%B7%E8%B4%9D%E4%BC%98%E5%8C%96/)
 ## 20. 完美转发
 ```
 template<typename T>
@@ -825,3 +825,22 @@ int main()
 	return 0;
 }
 ```
+## 32 原地初始化
+C++对类非静态成员可以就地初始化，用=或{}进行初始化，它的赋值顺序在参数初始化之后. 在其他定义变量，也可以这样原地初始化。
+```
+class Demo
+{
+private:
+    int a = 1;
+    vector<int> v{1,2,3,4};
+public:
+    Demo(){}
+    Demo(int x):a(x){}
+}
+```
+
+## 33 final关键字
+修饰虚函数，这样派生类无法重载该接口
+## 34 override关键字
+修饰派生类的虚函数，该接口 必须在基类的虚函数中（清晰表现当前类的接口是 虚函数还是新定义接口）
+
